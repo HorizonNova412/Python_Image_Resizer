@@ -16,16 +16,31 @@ def resize_images():
     # def validate_max_size_input(new_value):
     max_size = int(max_size_var.get())
 
+    print("INPUT DIR =", input_dir)
+    print("OUTPUT DIR =", output_dir)
+    print("LISTING:", os.listdir(input_dir) if os.path.isdir(input_dir) 
+          else "NOT A DIRECTORY")
+
     for filename in os.listdir(input_dir):
         if filename.lower().endswith(('.png', '.jpg', '.jpeg')):
+            # Split the file name and extension
+            name, ext = os.path.splitext(filename)
+
+            # Add the suffix to the file name
+            output_filename = f"{name}_resized{ext}"
+
+            # Specify the input and output paths
             input_path = os.path.join(input_dir, filename)
-            output_path = os.path.join(output_dir, filename)
+            output_path = os.path.join(output_dir, output_filename)
+
+            print(input_path)
+            print(output_path)
 
             with Image.open(input_path) as img:
                 width, height = img.size
-                if max(width, height) > max_size:
+                if min(width, height) > max_size:
                     aspect_ratio = width / height
-                    if width > height:
+                    if width < height:
                         new_width = max_size
                         new_height = int(max_size / aspect_ratio)
                     else:
@@ -34,8 +49,10 @@ def resize_images():
                     resized_img = img.resize(
                         (new_width, new_height), Image.LANCZOS)
                     resized_img.save(output_path)
+                    print(f"image {filename} resized")
                 else:
                     img.save(output_path)
+                    print(f"image {filename} not resized")
 
     messagebox.showinfo("Complete", "Images resized successfully!")
 
@@ -43,7 +60,7 @@ def resize_images():
 root = tk.Tk()
 root.title("Python Image Resizer")
 
-# Apply a modern theme
+# Apply a theme
 style = ttk.Style()
 style.theme_use('clam')  # Use the 'clam' theme (clam, alt, default, classic)
 
@@ -56,44 +73,50 @@ style.configure('TEntry', font=('Helvetica', 10), fieldbackground='#ffffff')
 # Configure the main window background
 root.configure(bg='#f0f0f0')
 
+# Add an information box at the top
+info_text = "Instructions:\n Select input and output directories, " \
+"enter the maximum size (in pixels), and click 'Resize Images'."
+info_label = ttk.Label(root, text=info_text, wraplength=400, justify='center')
+info_label.grid(row=0, column=0, columnspan=3, padx=5, pady=20)
+
 # Set default directories
 # Default to the user's Pictures directory
-default_input_dir = os.path.expanduser("~/Pictures")
+default_input_dir = os.path.expanduser("~/Downloads")
 # Default to a Resized subdirectory in Pictures
-default_output_dir = os.path.expanduser("~/Pictures")
+default_output_dir = os.path.expanduser("~/Downloads")
 
 # Input directory selection
 input_dir_label = ttk.Label(root, text="Input Directory:")
-input_dir_label.grid(row=0, column=0, padx=5, pady=5)
-input_dir_var = tk.StringVar()
+input_dir_label.grid(row=1, column=0, padx=5, pady=5)
+input_dir_var = tk.StringVar(value=default_input_dir)
 input_dir_entry = ttk.Entry(root, textvariable=input_dir_var, width=50)
-input_dir_entry.grid(row=0, column=1, padx=5, pady=5)
+input_dir_entry.grid(row=1, column=1, padx=5, pady=5)
 input_dir_button = ttk.Button(
     root, text="Browse", command=lambda: 
     input_dir_var.set(filedialog.askdirectory(initialdir=default_input_dir)))
-input_dir_button.grid(row=0, column=2, padx=5, pady=5)
+input_dir_button.grid(row=1, column=2, padx=5, pady=5)
 
 # Output directory selection
 output_dir_label = ttk.Label(root, text="Output Directory:")
-output_dir_label.grid(row=1, column=0, padx=5, pady=5)
-output_dir_var = tk.StringVar()
+output_dir_label.grid(row=2, column=0, padx=5, pady=5)
+output_dir_var = tk.StringVar(value=default_output_dir)
 output_dir_entry = ttk.Entry(root, textvariable=output_dir_var, width=50)
-output_dir_entry.grid(row=1, column=1, padx=5, pady=5)
+output_dir_entry.grid(row=2, column=1, padx=5, pady=5)
 output_dir_button = ttk.Button(
     root, text="Browse", command=lambda: 
     output_dir_var.set(filedialog.askdirectory(initialdir=default_output_dir)))
-output_dir_button.grid(row=1, column=2, padx=5, pady=5)
+output_dir_button.grid(row=2, column=2, padx=5, pady=5)
 
 # Max size input
 max_size_label = ttk.Label(root, text="Max Size (pixels):")
-max_size_label.grid(row=2, column=0, padx=5, pady=5)
+max_size_label.grid(row=3, column=0, padx=5, pady=5)
 max_size_var = tk.StringVar(value="1080")
 max_size_entry = ttk.Entry(root, textvariable=max_size_var, width=10)
-max_size_entry.grid(row=2, column=1, padx=5, pady=5)
+max_size_entry.grid(row=3, column=1, padx=5, pady=5)
 
 # Resize button
 resize_button = ttk.Button(root, text="Resize Images", command=resize_images)
-resize_button.grid(row=3, column=0, columnspan=3, pady=10)
+resize_button.grid(row=4, column=0, columnspan=3, pady=10)
 
 # Run the application
 root.mainloop()
